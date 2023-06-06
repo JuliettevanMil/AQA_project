@@ -1,5 +1,5 @@
 import numpy as np
-from QUBO_formulation import define_qubo, distance_cols, distance_rows, total_meas_eff, qubo_to_dict
+from QUBO_formulation import define_qubo, distance_cols, distance_rows, total_meas_eff, qubo_to_dict, index_rev
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
 import networkx as nx
@@ -9,12 +9,14 @@ import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
 
-input_matrix = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+input_matrix = np.array([[1, 0, 1], 
+                         [0, 0, 0], 
+                         [1, 0, 1]])
 
 # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
-Q_col = define_qubo(input_matrix, distance_cols, np.shape(input_matrix)[1], 1)
+Q_col = define_qubo(input_matrix, distance_cols, np.shape(input_matrix)[1], 2)
 
-print(Q_col)
+#print(Q_col)
 
 ### Total measure of effectiveness example
 matrix1 = np.array(
@@ -39,7 +41,7 @@ print(total_meas_eff(matrix1))
 print(total_meas_eff(matrix2))
 
 Q = qubo_to_dict(Q_col, 3)
-print(Q)
+#print(Q)
 
 # ------- Run our QUBO on the QPU -------
 # Set up QPU parameters
@@ -57,12 +59,15 @@ dwave.inspector.show(response)
 
 # ------- Print results to user -------
 print('-' * 60)
-print('{:>15s}{:>15s}{:^15s}{:^15s}'.format('Set 0','Set 1','Energy','Cut Size'))
+print('{:>15s}{:>15s}{:^15s}{:^15s}'.format('Set 0','Set 1','Set 2','Energy'))
 print('-' * 60)
 for sample, E in response.data(fields=['sample','energy']):
-    S0 = [k for k,v in sample.items() if v == 0]
-    S1 = [k for k,v in sample.items() if v == 1]
-    print('{:>15s}{:>15s}{:^15s}{:^15s}'.format(str(S0),str(S1),str(E),str(int(-1*E))))
+    set_ones = [k for k,v in sample.items() if v == 1]
+    set_idx = [index_rev(i,3) for i in set_ones]
+    S0 = [p for i,p in set_idx if i==0]
+    S1 = [p for i,p in set_idx if i==1]
+    S2 = [p for i,p in set_idx if i==2]
+    print('{:>15s}{:>15s}{:^15s}{:^15s}'.format(str(S0),str(S1),str(S2),str(E)))
 
 # ------- Display results to user -------
 # Grab best result
@@ -71,6 +76,7 @@ for sample, E in response.data(fields=['sample','energy']):
 #   and the value is the set label. For example, lut[5] = 1, indicates that
 #   node 5 is in set 1 (S1).
 lut = response.first.sample
+print(lut)
 
 # Interpret best result in terms of nodes and edges
 # S0 = [node for node in G.nodes if not lut[node]]
