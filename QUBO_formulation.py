@@ -44,8 +44,8 @@ def index(i, p, num_V):
 
 
 def index_rev(idx, num_V):
-    i = 0
-    p = 0
+    i = idx // num_V
+    p = idx % num_V
     return i, p
 
 
@@ -86,6 +86,11 @@ def qubo_to_dict(Q, num_V):
 
 
 if __name__ == "__main__":
+    set_ones = [1,3,6,8]
+    set_idx = [index_rev(i,3) for i in set_ones]
+    print(set_idx)
+    
+    
     input_matrix = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
 
     # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
@@ -112,5 +117,5 @@ if __name__ == "__main__":
             [0, 0, 0, 1, 1],
         ]
     )
-    print(total_meas_eff(matrix1))
-    print(total_meas_eff(matrix2))
+    #print(total_meas_eff(matrix1))
+    #print(total_meas_eff(matrix2))
