@@ -9,16 +9,23 @@ import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
 
-input_matrix = np.array([[1, 0, 1], 
-                         [0, 0, 0], 
-                         [1, 0, 1]])
-input_matrix = np.array([[1, 0], 
-                         [0, 1]])
+input_matrix = np.array([[1, 0, 1, 0, 1],
+                         [0, 1, 0, 1, 0],
+                         [1, 0, 1, 0, 1],
+                         [0, 1, 0, 1, 0],
+                         [1, 0, 1, 0, 1]])
+# input_matrix = np.array([[1, 0, 1], 
+#                          [0, 1, 0], 
+#                          [1, 0, 1]])
+# input_matrix = np.array([[0, 0], 
+                        #  [0, 0]])
+# print(np.triu(input_matrix))
 num_V = np.shape(input_matrix)[1]
-alpha=1
+alpha=1.5 # reward
+beta=3 # penalty
 
 # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
-Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha)
+Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha, beta)
 
 print(Q_col)
 
@@ -41,11 +48,11 @@ matrix2 = np.array(
         [0, 0, 0, 1, 1],
     ]
 )
-print(total_meas_eff(matrix1))
-print(total_meas_eff(matrix2))
+# print(total_meas_eff(matrix1))
+# print(total_meas_eff(matrix2))
 
 Q = qubo_to_dict(Q_col, num_V)
-print(Q)
+# print(Q)
 
 # ------- Run our QUBO on the QPU -------
 # Set up QPU parameters
@@ -63,7 +70,7 @@ dwave.inspector.show(response)
 
 # ------- Print results to user -------
 print('-' * 60)
-print('{:>15s}{:>15s}{:^15s}{:^15s}'.format('Set 0','Set 1','Set 2','Energy'))
+print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format('Column 0','Column 1','Column 2','Column 3','Column 4','Energy'))
 print('-' * 60)
 for sample, E in response.data(fields=['sample','energy']):
     set_ones = [k for k,v in sample.items() if v == 1]
@@ -71,7 +78,9 @@ for sample, E in response.data(fields=['sample','energy']):
     S0 = [p for i,p in set_idx if i==0]
     S1 = [p for i,p in set_idx if i==1]
     S2 = [p for i,p in set_idx if i==2]
-    print('{:>15s}{:>15s}{:^15s}{:^15s}'.format(str(S0),str(S1),str(S2),str(E)))
+    S3 = [p for i,p in set_idx if i==3]
+    S4 = [p for i,p in set_idx if i==4]
+    print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format(str(S0),str(S1),str(S2),str(S3),str(S4),str(E)))
 
 # ------- Display results to user -------
 # Grab best result

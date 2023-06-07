@@ -49,7 +49,7 @@ def index_rev(idx, num_V):
     return i, p
 
 
-def define_qubo(A, distance_func, num_V, alpha):
+def define_qubo(A, distance_func, num_V, alpha, beta):
     Q = np.zeros((num_V * num_V, num_V * num_V))
 
     # H_obj
@@ -57,22 +57,24 @@ def define_qubo(A, distance_func, num_V, alpha):
         for i in range(num_V):
             for j in range(num_V):
                 Q[index(i, p, num_V), index(j, p + 1, num_V)] += distance_func(A, i, j)
-                Q[index(j, p + 1, num_V), index(i, p, num_V)] += distance_func(A, j, i)
+                Q[index(j, p + 1, num_V), index(i, p, num_V)] += distance_func(A, j, i)            
 
     # H_hor
     for p in range(num_V):
         for i in range(num_V):
             Q[index(i, p, num_V), index(i, p, num_V)] += -2 * alpha
             for j in range(i, num_V):
-                Q[index(i, p, num_V), index(j, p, num_V)] += alpha
+                Q[index(i, p, num_V), index(j, p, num_V)] += beta
 
     # H_ver
     for i in range(num_V):
         for p in range(num_V):
             Q[index(i, p, num_V), index(i, p, num_V)] += -2 * alpha
             for q in range(p, num_V):
-                Q[index(i, p, num_V), index(i, q, num_V)] += alpha
-
+                Q[index(i, p, num_V), index(i, q, num_V)] += beta
+    
+    Q = np.triu(Q)
+    
     return Q
 
 
