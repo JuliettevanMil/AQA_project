@@ -12,11 +12,15 @@ from matplotlib import pyplot as plt
 input_matrix = np.array([[1, 0, 1], 
                          [0, 0, 0], 
                          [1, 0, 1]])
+input_matrix = np.array([[1, 0], 
+                         [0, 1]])
+num_V = np.shape(input_matrix)[1]
+alpha=1
 
 # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
-Q_col = define_qubo(input_matrix, distance_cols, np.shape(input_matrix)[1], 2)
+Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha)
 
-#print(Q_col)
+print(Q_col)
 
 ### Total measure of effectiveness example
 matrix1 = np.array(
@@ -40,8 +44,8 @@ matrix2 = np.array(
 print(total_meas_eff(matrix1))
 print(total_meas_eff(matrix2))
 
-Q = qubo_to_dict(Q_col, 3)
-#print(Q)
+Q = qubo_to_dict(Q_col, num_V)
+print(Q)
 
 # ------- Run our QUBO on the QPU -------
 # Set up QPU parameters
@@ -63,7 +67,7 @@ print('{:>15s}{:>15s}{:^15s}{:^15s}'.format('Set 0','Set 1','Set 2','Energy'))
 print('-' * 60)
 for sample, E in response.data(fields=['sample','energy']):
     set_ones = [k for k,v in sample.items() if v == 1]
-    set_idx = [index_rev(i,3) for i in set_ones]
+    set_idx = [index_rev(i,num_V) for i in set_ones]
     S0 = [p for i,p in set_idx if i==0]
     S1 = [p for i,p in set_idx if i==1]
     S2 = [p for i,p in set_idx if i==2]
