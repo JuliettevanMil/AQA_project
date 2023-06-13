@@ -59,18 +59,18 @@ def define_qubo(A, distance_func, num_V, alpha, beta):
                 Q[index(i, p, num_V), index(j, p + 1, num_V)] += distance_func(A, i, j)
                 Q[index(j, p + 1, num_V), index(i, p, num_V)] += distance_func(A, j, i)            
 
-    # H_hor
+    # H_rc
     for p in range(num_V):
         for i in range(num_V):
-            Q[index(i, p, num_V), index(i, p, num_V)] += -2 * alpha
-            for j in range(i, num_V):
+            Q[index(i, p, num_V), index(i, p, num_V)] -= alpha
+            for j in range(i+1, num_V):
                 Q[index(i, p, num_V), index(j, p, num_V)] += beta
 
-    # H_ver
+    # H_path
     for i in range(num_V):
         for p in range(num_V):
-            Q[index(i, p, num_V), index(i, p, num_V)] += -2 * alpha
-            for q in range(p, num_V):
+            Q[index(i, p, num_V), index(i, p, num_V)] -= alpha
+            for q in range(p+1, num_V):
                 Q[index(i, p, num_V), index(i, q, num_V)] += beta
     
     Q = np.triu(Q)
@@ -81,7 +81,7 @@ def define_qubo(A, distance_func, num_V, alpha, beta):
 def qubo_to_dict(Q, num_V):
     Q_dict = defaultdict(int)
     for i in range(num_V * num_V):
-        for j in range(i, num_V * num_V):
+        for j in range(num_V * num_V):
             Q_dict[(i, j)] = Q[i, j]
 
     return Q_dict
