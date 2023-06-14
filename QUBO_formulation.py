@@ -10,7 +10,7 @@ def distance_rows(A, r, s):
     for j in range(np.shape(A)[0]):
         d -= 2 * A[r, j] * A[s, j]
 
-    return d
+    return d 
 
 
 def distance_cols(A, r, s):
@@ -21,7 +21,7 @@ def distance_cols(A, r, s):
     for k in range(np.shape(A)[1]):
         d -= 2 * A[k, r] * A[k, s]
 
-    return d
+    return d / np.shape(A)[0]
 
 
 def total_meas_eff(A):

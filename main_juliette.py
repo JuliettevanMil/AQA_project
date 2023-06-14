@@ -12,29 +12,36 @@ import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
 
-input_matrix = np.array([[1, 0, 1, 0, 1],
-                         [0, 1, 0, 1, 0],
-                         [1, 0, 1, 0, 1],
-                         [0, 1, 0, 1, 0],
-                         [1, 0, 1, 0, 1]])
+input_matrix = np.array([[1, 0, 1, 0, 1, 0, 1],
+                         [0, 1, 0, 1, 0, 1, 0],
+                         [1, 0, 1, 0, 1, 0, 1],
+                         [0, 1, 0, 1, 0, 1, 0],
+                         [1, 0, 1, 0, 1, 0, 1],
+                         [0, 1, 0, 1, 0, 1, 0],
+                         [1, 0, 1, 0, 1, 0, 1]])
+# input_matrix = np.array([[1, 0, 1, 0, 1],
+#                          [0, 1, 0, 1, 0],
+#                          [1, 0, 1, 0, 1],
+#                          [0, 1, 0, 1, 0],
+#                          [1, 0, 1, 0, 1]])
 # input_matrix = np.array([[1,0,1,0],
-#                           [0,1,0,1],
-#                           [1,0,1,0],
-#                           [0,1,0,1]])
-input_matrix = np.array([[1, 0, 1], 
-                         [0, 1, 0], 
-                         [1, 0, 1]])
+#                          [0,1,0,1],
+#                          [1,0,1,0],
+#                          [0,1,0,1]])
+# input_matrix = np.array([[1, 0, 1], 
+#                          [0, 1, 0], 
+#                          [1, 0, 1]])
 # input_matrix = np.array([[0, 0], 
                         #  [0, 0]])
 # print(np.triu(input_matrix))
 num_V = np.shape(input_matrix)[1]
-alpha=4 # reward
-beta=8 # penalty
+alpha=1 # reward
+beta=4 # penalty
 
 # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
 Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha, beta)
 
-print(Q_col)
+# print(Q_col)
 
 Q = qubo_to_dict(Q_col, num_V)
 # print(Q)
@@ -56,7 +63,7 @@ dwave.inspector.show(response)
 
 # ------- Print results to user -------
 print('-' * 60)
-print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format('Column 0','Column 1','Column 2','Column 3','Column 4','Energy'))
+print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format('Column 0','Column 1','Column 2','Column 3','Column 4','Column 5','Column 6','Energy'))
 print('-' * 60)
 for sample, E in response.data(fields=['sample','energy']):
     set_ones = [k for k,v in sample.items() if v == 1]
@@ -66,7 +73,9 @@ for sample, E in response.data(fields=['sample','energy']):
     S2 = [p for i,p in set_idx if i==2]
     S3 = [p for i,p in set_idx if i==3]
     S4 = [p for i,p in set_idx if i==4]
-    print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format(str(S0),str(S1),str(S2),str(S3),str(S4),str(E)))
+    S5 = [p for i,p in set_idx if i==5]
+    S6 = [p for i,p in set_idx if i==6]
+    print('{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}'.format(str(S0),str(S1),str(S2),str(S3),str(S4),str(S5),str(S6),str(E)))
 
 lut = response.first.sample
-print(lut)
+# print(lut)
