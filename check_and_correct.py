@@ -130,10 +130,15 @@ def check_instances(solution_dict, fix=False):
             pass
         else:
             if fix == True:
-                corrections = fix_size(sample)
-                for i in range(len(corrections)):
-                    corrections_dict[sample + ".s{}".format(i)] = corrections[i]
-                continue
+                corrections = fix_size(solution)
+                if len(corrections) == 0:
+                    solution.append(bool_size)
+                    solution_dict[sample] = solution
+                    continue
+                else:
+                    for i in range(len(corrections)):
+                        corrections_dict[sample + ".s{}".format(i)] = corrections[i]
+                    continue
             else:
                 solution.append(bool_size)
                 solution_dict[sample] = solution
@@ -148,10 +153,15 @@ def check_instances(solution_dict, fix=False):
             pass
         else:
             if fix == True:
-                corrections = fix_mece(sample)
-                for i in range(len(corrections)):
-                    corrections_dict[sample + ".m{}".format(i)] = corrections[i]
-                continue
+                corrections = fix_mece(solution)
+                if len(corrections) == 0:
+                    solution.append(bool_mece)
+                    solution_dict[sample] = solution
+                    continue
+                else:
+                    for i in range(len(corrections)):
+                        corrections_dict[sample + ".m{}".format(i)] = corrections[i]
+                    continue
             else:
                 solution.append(bool_mece)
                 solution_dict[sample] = solution
@@ -163,10 +173,15 @@ def check_instances(solution_dict, fix=False):
             pass
         else:
             if fix == True:
-                corrections = fix_order(sample)
-                for i in range(len(corrections)):
-                    corrections_dict[sample + ".o{}".format(i)] = corrections[i]
-                continue
+                corrections = fix_order(solution)
+                if len(corrections) == 0:
+                    solution.append(bool_mece)
+                    solution_dict[sample] = solution
+                    continue
+                else:
+                    for i in range(len(corrections)):
+                        corrections_dict[sample + ".o{}".format(i)] = corrections[i]
+                    continue
             else:
                 solution.append(bool_order)
                 solution_dict[sample] = solution

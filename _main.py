@@ -6,7 +6,7 @@ input_matrix = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
 input_matrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]])
 
 alpha = 1  # reward
-beta = 4  # penalty
+beta = 5  # penalty
 
 solution_dict, lowest_energy = find_solution(
     input_matrix,
@@ -17,4 +17,14 @@ solution_dict, lowest_energy = find_solution(
     show_results=False,  # choose from [True, False]
 )
 print(solution_dict)
-print(check_instances(solution_dict))
+
+checked, corrections = check_instances(solution_dict, fix=True)
+print(checked)
+print(corrections)
+
+
+num_correct = 0
+for sample in checked:
+    if checked[sample][-1] == True:
+        num_correct += 1
+print(num_correct)  # number of correct solutions
