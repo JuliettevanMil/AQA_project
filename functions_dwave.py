@@ -66,7 +66,9 @@ def read_samples(samples_dict, num_V):
     return solution_dict
 
 
-def find_solution(input_matrix, alpha, beta, cluster_dim="col", show_results=False):
+def find_solution(
+    input_matrix, alpha, beta, cluster_dim="col", scale="id", show_results=False
+):
     """
     Input:
     - input matrix
@@ -81,10 +83,10 @@ def find_solution(input_matrix, alpha, beta, cluster_dim="col", show_results=Fal
 
     # ------- Define QUBO -------
     if cluster_dim == "col":
-        Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha, beta)
+        Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha, beta, scale)
         Q = qubo_to_dict(Q_col, num_V)
     elif cluster_dim == "row":
-        Q_row = define_qubo(input_matrix, distance_rows, num_V, alpha, beta)
+        Q_row = define_qubo(input_matrix, distance_rows, num_V, alpha, beta, scale)
         Q = qubo_to_dict(Q_row, num_V)
     else:
         raise ValueError(
