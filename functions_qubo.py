@@ -10,7 +10,7 @@ def distance_rows(A, r, s):
     for j in range(np.shape(A)[0]):
         d -= 2 * A[r, j] * A[s, j]
 
-    return d 
+    return d
 
 
 def distance_cols(A, r, s):
@@ -57,24 +57,24 @@ def define_qubo(A, distance_func, num_V, alpha, beta):
         for i in range(num_V):
             for j in range(num_V):
                 Q[index(i, p, num_V), index(j, p + 1, num_V)] += distance_func(A, i, j)
-                Q[index(j, p + 1, num_V), index(i, p, num_V)] += distance_func(A, j, i)            
+                Q[index(j, p + 1, num_V), index(i, p, num_V)] += distance_func(A, j, i)
 
     # H_rc
     for p in range(num_V):
         for i in range(num_V):
             Q[index(i, p, num_V), index(i, p, num_V)] -= alpha
-            for j in range(i+1, num_V):
+            for j in range(i + 1, num_V):
                 Q[index(i, p, num_V), index(j, p, num_V)] += beta
 
     # H_path
     for i in range(num_V):
         for p in range(num_V):
             Q[index(i, p, num_V), index(i, p, num_V)] -= alpha
-            for q in range(p+1, num_V):
+            for q in range(p + 1, num_V):
                 Q[index(i, p, num_V), index(i, q, num_V)] += beta
-    
+
     Q = np.triu(Q)
-    
+
     return Q
 
 
@@ -88,11 +88,10 @@ def qubo_to_dict(Q, num_V):
 
 
 if __name__ == "__main__":
-    set_ones = [1,3,6,8]
-    set_idx = [index_rev(i,3) for i in set_ones]
+    set_ones = [1, 3, 6, 8]
+    set_idx = [index_rev(i, 3) for i in set_ones]
     print(set_idx)
-    
-    
+
     input_matrix = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
 
     # Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
@@ -119,5 +118,5 @@ if __name__ == "__main__":
             [0, 0, 0, 1, 1],
         ]
     )
-    #print(total_meas_eff(matrix1))
-    #print(total_meas_eff(matrix2))
+    # print(total_meas_eff(matrix1))
+    # print(total_meas_eff(matrix2))
