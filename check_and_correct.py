@@ -110,7 +110,7 @@ def fix_order(sample):
 
 def check_instances(solution_dict, fix=False):
     """
-    Function that combines the checks and checks (iff fix==True).
+    Function that combines the checks and corrections (iff fix==True).
     - input: dictionary of solutions e.g. {'Sample 1': [[2],[0],[1]], 'Sample 2': ... }
     - output: same dictionary, but with "True" or "False" at the end of each solution, indicating if it is correct. e.g. {'Sample 1': [2,0,1,True], 'Sample 2': ... }
     if fix==True, also output a dictionary with possible corrections
