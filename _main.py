@@ -36,12 +36,13 @@ def create_alternating_matrix(d):
 # d = 4
 alpha = 1  # reward
 # beta = 1  # penalty
-beta_lst = [alpha/4, alpha/3, alpha/2, alpha, 3*alpha/2, 2*alpha, 5*alpha/2, 3*alpha, 4*alpha, 5*alpha, 6*alpha]
+beta_lst = [alpha/2, alpha, 3*alpha/2, 2*alpha, 5*alpha/2, 3*alpha, 4*alpha, 5*alpha, 6*alpha]
+# beta_lst = [7*alpha, 8*alpha, 9*alpha, 10*alpha]
 runs = 10
 
-data_file = 'Results_linear.xlsx'
+data_file = 'Results_threshold.xlsx'
 
-for d in range(4,10):
+for d in range(3,10):
     print(d)
     input_matrix = create_alternating_matrix(d)
     for beta in beta_lst:
@@ -55,12 +56,12 @@ for d in range(4,10):
                 alpha,
                 beta,
                 cluster_dim="col",  # choose from ["col", "row"]
-                scale="linear",  # choose from ["linear","treshold","id"]
+                scale="treshold",  # choose from ["linear","treshold","id"]
                 show_results=False,  # choose from [True, False]
             )
             # print(solution_dict)
 
-            checked = check_instances(solution_dict, fix=False)
+            checked, correction = check_instances(solution_dict, fix=True)
             if beta >= 1:
                 print(checked)
             # print(corrections)
