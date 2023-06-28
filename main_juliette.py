@@ -1,107 +1,100 @@
 import numpy as np
-from functions_qubo import (
-    define_qubo,
-    distance_cols,
-    distance_rows,
-    total_meas_eff,
-    qubo_to_dict,
-    index_rev,
-)
-from dwave.system.samplers import DWaveSampler
-from dwave.system.composites import EmbeddingComposite
-import networkx as nx
-import dwave.inspector
-from functools import partial
-from dwave.embedding.chain_strength import uniform_torque_compensation
+from functions_dwave import find_solution
+from check_and_correct import check_instances
+from openpyxl import load_workbook
 
 
-import matplotlib
+def add_list_to_datafile(data_list1, data_list2, data_list3, file_path, sheet_name):
+    # Load the existing workbook
+    workbook = load_workbook(file_path)
 
-matplotlib.use("agg")
-from matplotlib import pyplot as plt
+    # Select the specified sheet
+    sheet = workbook[sheet_name]
 
-input_matrix = np.array(
-    [
-        [1, 0, 1, 0, 1, 0, 1],
-        [0, 1, 0, 1, 0, 1, 0],
-        [1, 0, 1, 0, 1, 0, 1],
-        [0, 1, 0, 1, 0, 1, 0],
-        [1, 0, 1, 0, 1, 0, 1],
-        [0, 1, 0, 1, 0, 1, 0],
-        [1, 0, 1, 0, 1, 0, 1],
-    ]
-)
-# input_matrix = np.array([[1, 0, 1, 0, 1],
-#                          [0, 1, 0, 1, 0],
-#                          [1, 0, 1, 0, 1],
-#                          [0, 1, 0, 1, 0],
-#                          [1, 0, 1, 0, 1]])
-# input_matrix = np.array([[1,0,1,0],
-#                          [0,1,0,1],
-#                          [1,0,1,0],
-#                          [0,1,0,1]])
-# input_matrix = np.array([[1, 0, 1],
-#                          [0, 1, 0],
-#                          [1, 0, 1]])
-# input_matrix = np.array([[0, 0],
-#  [0, 0]])
-# print(np.triu(input_matrix))
-num_V = np.shape(input_matrix)[1]
+    # Find the next available row
+    next_row = sheet.max_row + 1
+
+    sheet.cell(row=next_row, column=1, value=alpha)
+    sheet.cell(row=next_row, column=2, value=beta)
+
+    # Iterate over the list and write the values to the sheet
+    for column, data1 in enumerate(data_list1, start=3):
+        sheet.cell(row=next_row, column=column, value=data1)
+    for column, data2 in enumerate(data_list2, start=3):
+        sheet.cell(row=next_row + 1, column=column, value=data2)
+    for column, data3 in enumerate(data_list3, start=3):
+        sheet.cell(row=next_row + 2, column=column, value=data3)
+
+    # Save the modified workbook
+    workbook.save(file_path)
+
+
+def create_alternating_matrix(d):
+    input_matrix = np.zeros((d, d), dtype=int)
+    for i in range(d):
+        for j in range(d):
+            if (i + j) % 2 == 0:
+                input_matrix[i][j] = 1
+    return input_matrix
+
+
+d_lst = [4, 5, 6, 7]
 alpha = 1  # reward
-beta = 4  # penalty
+# beta = 1  # penalty
+beta_lst = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+runs = 10
 
-# Q_row = define_qubo(input_matrix, distance_rows, np.shape(input_matrix)[0], 1)
-Q_col = define_qubo(input_matrix, distance_cols, num_V, alpha, beta)
+data_file = "Results_threshold_check.xlsx"
 
-# print(Q_col)
+for d in d_lst:
+    print(d)
+    input_matrix = create_alternating_matrix(d)
+    for beta in beta_lst:
+        print(beta)
+        num_correct_lst = np.zeros(runs)
+        num_correct2_lst = np.zeros(runs)
+        num_false_lst = np.zeros(runs)
 
-Q = qubo_to_dict(Q_col, num_V)
-# print(Q)
+        for i in range(runs):
+            solution_dict, lowest_energy = find_solution(
+                input_matrix,
+                alpha,
+                beta,
+                cluster_dim="col",  # choose from ["col", "row"]
+                scale="threshold",  # choose from ["linear","treshold","id"]
+                show_results=False,  # choose from [True, False]
+            )
+            # print(solution_dict)
 
-# ------- Run our QUBO on the QPU -------
-# Set up QPU parameters
-chainstrength = 8
-chain_strength = partial(uniform_torque_compensation, prefactor=1.5)  # up to 2
-numruns = 10
+            checked, checked_corrections = check_instances(solution_dict, fix=True)
 
-# Run the QUBO on the solver from your config file
-sampler = EmbeddingComposite(DWaveSampler())
-response = sampler.sample_qubo(
-    Q, chain_strength=chain_strength, num_reads=numruns, label="Try - Clustering"
-)
+            num_correct = 0
+            for sample in checked:
+                if checked[sample][-1] == True:
+                    num_correct += 1
+            print(checked, num_correct)
 
-dwave.inspector.show(response)
+            num_correct_lst[i] = num_correct
+            num_false_lst[i] = len(checked) - num_correct
 
-# ------- Print results to user -------
-print("-" * 60)
-print(
-    "{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}".format(
-        "Column 0",
-        "Column 1",
-        "Column 2",
-        "Column 3",
-        "Column 4",
-        "Column 5",
-        "Column 6",
-        "Energy",
-    )
-)
-print("-" * 60)
-for sample, E in response.data(fields=["sample", "energy"]):
-    set_ones = [k for k, v in sample.items() if v == 1]
-    set_idx = [index_rev(i, num_V) for i in set_ones]
-    S0 = [p for i, p in set_idx if i == 0]
-    S1 = [p for i, p in set_idx if i == 1]
-    S2 = [p for i, p in set_idx if i == 2]
-    S3 = [p for i, p in set_idx if i == 3]
-    S4 = [p for i, p in set_idx if i == 4]
-    S5 = [p for i, p in set_idx if i == 5]
-    S6 = [p for i, p in set_idx if i == 6]
-    print(
-        "{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:>15s}{:^15s}".format(
-            str(S0), str(S1), str(S2), str(S3), str(S4), str(S5), str(S6), str(E)
+            num_correct2 = 0
+            for sample in checked_corrections:
+                for correction in checked_corrections[sample]:
+                    if checked_corrections[sample][correction][-1] == True:
+                        num_correct2 += 1
+                        break
+            print(checked_corrections, num_correct2)
+
+            num_correct2_lst[i] = num_correct2
+
+        print(
+            np.mean(num_correct_lst), np.mean(num_false_lst), np.mean(num_correct2_lst)
         )
-    )
 
-lut = response.first.sample
-# print(lut)
+        print("correct outputs: ", num_correct_lst)
+        print("false outputs: ", num_false_lst)
+        print("correct outputs2: ", num_correct2_lst)
+
+        add_list_to_datafile(
+            num_correct_lst, num_false_lst, num_correct2_lst, data_file, "{}".format(d)
+        )

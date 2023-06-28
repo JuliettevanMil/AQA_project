@@ -8,11 +8,11 @@ def check_size(sample):
     """
     try:
         if np.shape(sample)[1] == 1:
-            return sample, True
+            return True
         else:
-            return sample, False
+            return False
     except:
-        return sample, False
+        return False
 
 
 def check_mece(sample):
@@ -20,9 +20,9 @@ def check_mece(sample):
     Checks if all elements in the sample are unique
     """
     if len(set(sample)) == len(sample):
-        return sample, True
+        return True
     else:
-        return sample, False
+        return False
 
 
 def check_order(sample):
@@ -36,9 +36,9 @@ def check_order(sample):
         if lst_mod[i] != lst_mod[i + 1]:
             jumps += 1
     if jumps == 1:
-        return sample, True
+        return True
     else:
-        return sample, False
+        return False
 
 
 def fix_size(sample):
@@ -96,16 +96,63 @@ def fix_size(sample):
     return corrections
 
 
+def find_doubles(lst):
+    doubles = []
+    seen = set()
+    for i, item in enumerate(lst):
+        if item in seen:
+            doubles.append(item)
+        else:
+            seen.add(item)
+    return doubles
+
+
 def fix_mece(sample):
     # e.g. [0,0,1] -> [2,0,1] or [0,2,1]
     corrections = []
+    doubles = find_doubles(sample)
+    mece_set = list(range(len(sample)))
+    doubles = find_doubles(sample)
+    if len(doubles) == 1:
+        idxs = np.where(np.array(sample) == doubles)[0]
+        items = [item for item in mece_set if item not in sample] + doubles
+        item_permutations = list(permutations(items))
+        for permutation in item_permutations:
+            new_sample = list(sample)  # copy original sample
+            for i in range(len(permutation)):
+                new_sample[idxs[i]] = permutation[i]
+            corrections.append(new_sample)
+    else:
+        print("Cannot find a fix for sample ", sample)
+        pass
     return corrections
 
 
 def fix_order(sample):
     # only if #jumps == 2, e.g. [1,0,2,3] -> [1,3,0,2]
     corrections = []
-    return corrections
+    idxs = []
+    lst_mod = np.array(sample) % 2
+    jumps = 0
+    for i in range(len(lst_mod) - 1):
+        if lst_mod[i] != lst_mod[i + 1]:
+            idxs.append(i)
+            jumps += 1
+
+    if jumps == 2 and len(sample) > 3:
+        corrections.append(sample[(idxs[0] + 1) :] + sample[: (idxs[0] + 1)])
+        return corrections
+    elif jumps == 3 and len(sample) > 4:
+        corrections.append(
+            sample[: (idxs[0] + 1)]
+            + sample[(idxs[1] + 1) : (idxs[2] + 1)]
+            + sample[(idxs[0] + 1) : (idxs[1] + 1)]
+            + sample[(idxs[2] + 1) :]
+        )
+        return corrections
+    else:
+        print("Cannot find a fix for sample ", sample)
+        return corrections
 
 
 def check_instances(solution_dict, fix=False):
@@ -114,6 +161,7 @@ def check_instances(solution_dict, fix=False):
     - input: dictionary of solutions e.g. {'Sample 1': [[2],[0],[1]], 'Sample 2': ... }
     - output: same dictionary, but with "True" or "False" at the end of each solution, indicating if it is correct. e.g. {'Sample 1': [2,0,1,True], 'Sample 2': ... }
     if fix==True, also output a dictionary with possible corrections
+        - .n stands for "no correction done"
         - 'Sample 1.s0', 'Sample 1.s1', ... indicate corrections from 'Sample 1' with an error in the size
         - 'Sample 1.m0', 'Sample 1.m1', ... indicate corrections from 'Sample 1' with an error in the uniqueness of the numbers
         - 'Sample 1.o0', 'Sample 1.o1', ... indicate corrections from 'Sample 1' with an error in the order
@@ -123,69 +171,62 @@ def check_instances(solution_dict, fix=False):
 
     for sample in solution_dict:
         solution = solution_dict[sample]
-
         # Check size: [[2],[0],[1]] is True, [[2,0],[0],[1]] is False
-        solution, bool_size = check_size(solution)
-        if bool_size == True:
-            pass
-        else:
-            if fix == True:
-                corrections = fix_size(solution)
-                if len(corrections) == 0:
-                    solution.append(bool_size)
-                    solution_dict[sample] = solution
-                    continue
-                else:
-                    for i in range(len(corrections)):
-                        corrections_dict[sample + ".s{}".format(i)] = corrections[i]
-                    continue
+        if sample[1] == "a" or sample[1] == "s":
+            bool_size = check_size(solution)
+            if bool_size == True:
+                pass
             else:
+                if fix == True:
+                    corrections = fix_size(solution)
+                    if len(corrections) == 0:
+                        pass
+                    else:
+                        corrections_dict[sample] = {}
+                        for i in range(len(corrections)):
+                            corrections_dict[sample][".s{}".format(i)] = corrections[i]
                 solution.append(bool_size)
                 solution_dict[sample] = solution
                 continue
 
-        # Flatten list: [[2],[0],[1]] -> [2,0,1]
-        solution = [item for sublist in solution for item in sublist]
+            # Flatten list: [[2],[0],[1]] -> [2,0,1]
+            solution = [item for sublist in solution for item in sublist]
+        else:
+            pass
 
         # Check if all numbers occur once: [2,0,1] is True, [0,0,1] is False
-        solution, bool_mece = check_mece(solution)
+        bool_mece = check_mece(solution)
         if bool_mece == True:
             pass
         else:
             if fix == True:
                 corrections = fix_mece(solution)
                 if len(corrections) == 0:
-                    solution.append(bool_mece)
-                    solution_dict[sample] = solution
-                    continue
+                    pass
                 else:
+                    corrections_dict[sample] = {}
                     for i in range(len(corrections)):
-                        corrections_dict[sample + ".m{}".format(i)] = corrections[i]
-                    continue
-            else:
-                solution.append(bool_mece)
-                solution_dict[sample] = solution
-                continue
+                        corrections_dict[sample][".m{}".format(i)] = corrections[i]
+            solution.append(bool_mece)
+            solution_dict[sample] = solution
+            continue
 
         # Check if order is correct
-        solution, bool_order = check_order(solution)
+        bool_order = check_order(solution)
         if bool_order == True:
             pass
         else:
             if fix == True:
                 corrections = fix_order(solution)
                 if len(corrections) == 0:
-                    solution.append(bool_mece)
-                    solution_dict[sample] = solution
-                    continue
+                    pass
                 else:
+                    corrections_dict[sample] = {}
                     for i in range(len(corrections)):
-                        corrections_dict[sample + ".o{}".format(i)] = corrections[i]
-                    continue
-            else:
-                solution.append(bool_order)
-                solution_dict[sample] = solution
-                continue
+                        corrections_dict[sample][".o{}".format(i)] = corrections[i]
+            solution.append(bool_order)
+            solution_dict[sample] = solution
+            continue
 
         solution.append(True)
         solution_dict[sample] = solution
@@ -193,6 +234,9 @@ def check_instances(solution_dict, fix=False):
     if fix == False:
         return solution_dict
     else:
+        for sample in corrections_dict:
+            print(corrections_dict[sample], sample[1])
+            corrections_dict[sample] = check_instances(corrections_dict[sample])
         return solution_dict, corrections_dict
 
 
